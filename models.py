@@ -10,6 +10,7 @@ class Deployment(db.Model):
     station = db.relationship('Station', backref=db.backref('deployments', lazy=True))
     casper = db.relationship('Casper', backref=db.backref('deployments', lazy=True))
 
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -42,12 +43,16 @@ class Casper(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     casper_id = db.Column(db.String(10), nullable=False)
     name = db.Column(db.String(50), nullable=False)
+    department = db.Column(db.String(50) , nullable=False)
+    designation = db.Column(db.String(50) , nullable=False)
 
     def to_dict(self):
         return {
             'id': self.id,
             'casper_id': self.casper_id,
-            'name': self.name
+            'name': self.name,
+            "designation": self.designation,
+            "department": self.department
         }
 
     def __repr__(self) -> str:

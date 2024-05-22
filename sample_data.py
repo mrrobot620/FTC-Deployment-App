@@ -12,7 +12,7 @@ app = create_app()
 app.app_context().push()
 
 for _, row in df.iterrows():
-    casper = Casper(casper_id=row["casper"] , name=row["name"])
+    casper = Casper(casper_id=row["casper"] , name=row["name"] , department=row["department"] , designation=row["designation"])
     db.session.add(casper)
 
 db.session.commit()

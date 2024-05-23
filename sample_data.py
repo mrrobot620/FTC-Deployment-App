@@ -15,7 +15,7 @@ app.app_context().push()
  #   casper = Casper(casper_id=row["casper"] , name=row["name"] , department=row["department"] , designation=row["designation"])
   #  db.session.add(casper)
 
-station = Station(zone="B5" , station_type="Primary" , station="VDS Station")
+station = Station(zone="CBS" , station_type="Secondary" , station="NZStation2")
 db.session.add(station)
 db.session.commit()
 

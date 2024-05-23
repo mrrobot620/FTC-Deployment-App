@@ -36,12 +36,13 @@ class Station(db.Model):
             "type": self.station_type
         }
 
+
     def __repr__(self) -> str:
         return f"Station: {self.station} Zone: {self.zone} Type: {self.station_type}"
 
 class Casper(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    casper_id = db.Column(db.String(10), nullable=False)
+    casper_id = db.Column(db.String(10), nullable=False , unique=True)
     name = db.Column(db.String(50), nullable=False)
     department = db.Column(db.String(50) , nullable=False)
     designation = db.Column(db.String(50) , nullable=False)
@@ -55,6 +56,7 @@ class Casper(db.Model):
             "department": self.department
         }
 
+   
     def __repr__(self) -> str:
         return f"Casper Id: {self.casper_id} Name: {self.name}"
 

@@ -1,3 +1,4 @@
+from enum import unique
 from os import stat
 from flask import Flask, render_template, request, jsonify
 from flask_migrate import Migrate
@@ -5,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
+
 
 
 db = SQLAlchemy()
@@ -178,7 +181,16 @@ def create_app():
         except Exception as e:
             app.logger.error(f"Unexpected Error:  {e}")
             return jsonify({"Error": "Internal Server Error"}) , 500
-        
+
+    @app.route("/get_zone" , methods=["GET"])
+    def get_zone():
+        try:
+            zones = db.session.query(Station.zone.distinct()).all()
+            zone = [zone[0] for zone in zones]
+            return jsonify(zone) , 200
+        except Exception as e:
+            app.logger.error(f"Unepected Error:  {e}")
+            return jsonify({"Error": "Internal Server Error"}) , 500
 
     return app
 

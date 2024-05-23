@@ -11,10 +11,12 @@ df = pd.read_csv("ftc.csv")
 app = create_app()
 app.app_context().push()
 
-for _, row in df.iterrows():
-    casper = Casper(casper_id=row["casper"] , name=row["name"] , department=row["department"] , designation=row["designation"])
-    db.session.add(casper)
+#for _, row in df.iterrows():
+ #   casper = Casper(casper_id=row["casper"] , name=row["name"] , department=row["department"] , designation=row["designation"])
+  #  db.session.add(casper)
 
+station = Station(zone="B5" , station_type="Primary" , station="VDS Station")
+db.session.add(station)
 db.session.commit()
 
 

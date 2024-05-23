@@ -123,9 +123,6 @@ def create_app():
                             
             if not station_id or not casper_ids or not shift:
                 return jsonify({"Error": "Missing Fields"}) , 400
-
-            
-
             deployments = []
             for casper_id in casper_ids:
                 deployment = Deployment(date=date , shift=shift , station_id=station_id , casper_id = casper_id)
@@ -163,6 +160,25 @@ def create_app():
         except Exception as e:
             app.logger.error(f"Unexpected Error: {e}")
             return jsonify({"Error": "Internal Server Error"}) , 500
+
+
+    @app.route("/get_zonewise_station" , methods=["GET"])
+    def get_zonewise_station():
+        zone = request.args.get("zone")
+        try:
+            if zone:
+                stations = Station.query.filter_by(zone=zone)
+                if stations:
+                    data = [station.to_dict() for station in stations]
+                    return jsonify(data) , 200
+                else:
+                    return jsonify("Error", "Stations not Available for this zone") , 404
+            else:
+                return jsonify("Error" , "Missing Fields") , 400
+        except Exception as e:
+            app.logger.error(f"Unexpected Error:  {e}")
+            return jsonify({"Error": "Internal Server Error"}) , 500
+        
 
     return app
 

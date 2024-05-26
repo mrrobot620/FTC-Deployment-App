@@ -7,7 +7,7 @@ from datetime import datetime
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
-
+import pandas as pd
 
 
 db = SQLAlchemy()
@@ -51,8 +51,16 @@ def create_app():
             if not deployments:
                 return jsonify({"Error": "Unable to Find Deployment for the date"}) , 404
             else:
-                data = jsonify([deployment.to_dict() for deployment in deployments])
-                return data , 200
+                data = [deployment.to_dict() for deployment in deployments]
+                df = pd.json_normalize(data)
+                overview = df.pivot_table(index='station.type' , values='casper.name' , aggfunc='count')
+                overview2 = overview.rename(columns={'casper.name': "type"})
+                overview_dict = overview2.to_dict()
+                response_data = {
+                    "data": data,
+                    "overview": overview_dict
+                }
+                return jsonify(response_data) , 200
             
         except Exception as e:
             app.logger.error(f"Unexpected Error: {e}")
@@ -64,7 +72,7 @@ def create_app():
         try:
             casper = request.args.get("casper")
             if casper:
-                deployment = Deployment.query.filter_by(casper_id= casper).order_by(Deployment.date.desc()).first()
+                deployment = Deployment.query.filter_by(casper_id=casper).order_by(Deployment.date.desc()).first()
                 if deployment:
                     return jsonify(deployment.to_dict())
                 else:
@@ -118,22 +126,28 @@ def create_app():
     @app.route("/add_deployment" , methods=["POST"])
     def add_deployment():
         data = request.get_json()
+        deployed = set()
+        already_deployedd = set()
         try:
             date = datetime.strptime(data.get("date") , "%Y-%m-%d").date()
             shift = data.get("shift")
             station_id = data.get("station_id")
             casper_ids = data.get("casper_ids")
-                            
+
             if not station_id or not casper_ids or not shift:
                 return jsonify({"Error": "Missing Fields"}) , 400
+            already_deployed = isAlreadyDeployed(casper_ids , date)
             deployments = []
             for casper_id in casper_ids:
                 deployment = Deployment(date=date , shift=shift , station_id=station_id , casper_id = casper_id)
-                db.session.add(deployment)
-                deployments.append(deployment)
-            db.session.commit()
-
-            return jsonify(deployment.to_dict()) , 201
+                if casper_id not in already_deployed:
+                    db.session.add(deployment)
+                    deployments.append(deployment)
+                    db.session.commit()
+                    deployed.add(casper_id)
+                else:
+                    already_deployedd.add(casper_id)
+            return jsonify({"Deployed": list(deployed) , "Already Deployed": list(already_deployedd)}) , 201
         except Exception as e:
             app.logger.error(f"Unexpected Error: {e}")
             return jsonify({"Error": "Internal Server Error"}) , 500
@@ -192,6 +206,21 @@ def create_app():
             app.logger.error(f"Unepected Error:  {e}")
             return jsonify({"Error": "Internal Server Error"}) , 500
 
+
+    def isAlreadyDeployed(casper_ids: list[str] , date):
+        already_deployed: list[str]  = []
+        try:
+            today_deployment = Deployment.query.filter_by(date=date).all()
+            deployment = [deployment.casper_id for deployment in today_deployment]
+            for casper in casper_ids:
+                if casper in deployment:
+                    already_deployed.append(casper) 
+            print(already_deployed)
+        except Exception as e:
+            app.logger.error(f'Unexpected Error:  {e}')
+        
+        return already_deployed
+                
     return app
 
 

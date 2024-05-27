@@ -56,9 +56,14 @@ def create_app():
                 overview = df.pivot_table(index='station.type' , values='casper.name' , aggfunc='count')
                 overview2 = overview.rename(columns={'casper.name': "type"})
                 overview_dict = overview2.to_dict()
+
+                station_wise = df.pivot_table(index="station.station" , values='casper.name' , aggfunc='count')
+                station_wise2 = station_wise.rename(columns={'casper.name': "type"})
+                station_wise_dict = station_wise2.to_dict()
                 response_data = {
                     "data": data,
-                    "overview": overview_dict
+                    "overview": overview_dict,
+                    "stations_wise": station_wise_dict
                 }
                 return jsonify(response_data) , 200
             

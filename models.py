@@ -41,6 +41,7 @@ class Station(db.Model):
 
 class Casper(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50) , nullable=False)
     casper_id = db.Column(db.String(10), nullable=False , unique=True)
     designation = db.Column(db.String(50) , nullable=False)
     department = db.Column(db.String(50) , nullable=False)

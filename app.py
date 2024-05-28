@@ -225,7 +225,24 @@ def create_app():
             app.logger.error(f'Unexpected Error:  {e}')
         
         return already_deployed
-                
+
+    @app.route("/delete_deployment" , methods=["POST"])
+    def delete_deployment():
+        try:
+            deployment_id = request.args.get("deployment_id")
+            if not deployment_id:
+                return jsonify({"Error": "Missing Deployment ID"}) , 400
+            deployment = Deployment.query.get(deployment_id)
+            if not deployment:
+                return jsonify({"Error" , "Deployment Not Found"}) , 404
+            db.session.delete(deployment)
+            db.session.commit()
+            return jsonify({"Sucess":  f"Deployment ID: {deployment_id} deleted successfully"}) , 200
+        except Exception as e:
+            app.logger.error(f"Unexpected Error:  {e}")
+            return jsonify({"Error": "Internal Server Error"}) , 500
+
+
     return app
 
 

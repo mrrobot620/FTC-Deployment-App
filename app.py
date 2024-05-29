@@ -212,8 +212,8 @@ def create_app():
             return jsonify({"Error": "Internal Server Error"}) , 500
 
 
-    def isAlreadyDeployed(casper_ids: list[str] , date):
-        already_deployed: list[str]  = []
+    def isAlreadyDeployed(casper_ids , date):
+        already_deployed = []
         try:
             today_deployment = Deployment.query.filter_by(date=date).all()
             deployment = [deployment.casper_id for deployment in today_deployment]
@@ -248,6 +248,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(port=8000 , debug=True)
-
+    app.run(port=8000 , debug=True )
 

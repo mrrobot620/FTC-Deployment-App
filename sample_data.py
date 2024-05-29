@@ -16,7 +16,7 @@ app.app_context().push()
   #  db.session.add(casper)
 
 station = [
-    Station(zone="B5" , station_type="Grid" , station="B5 Grid"), 
+    Station(zone="B5" , station_type="Labeller" , station="Bag Labeller"), 
            ]
 db.session.add_all(station)
 db.session.commit()

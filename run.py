@@ -3,5 +3,6 @@ from app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True , port=8000 , host="0.0.0.0")
-
+    context  = ("cert.pem" , "key.pem")
+    app.run(debug=True , port=8000 , host="0.0.0.0" , ssl_context=context)
+    

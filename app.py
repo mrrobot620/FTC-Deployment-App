@@ -137,7 +137,7 @@ def create_app():
             date = datetime.strptime(data.get("date") , "%Y-%m-%d").date()
             shift = data.get("shift")
             station_id = data.get("station_id")
-            casper_ids = data.get("casper_ids")
+            casper_ids =  data.get("casper_ids")
 
             if not station_id or not casper_ids or not shift:
                 return jsonify({"Error": "Missing Fields"}) , 400
@@ -216,7 +216,8 @@ def create_app():
         already_deployed = []
         try:
             today_deployment = Deployment.query.filter_by(date=date).all()
-            deployment = [deployment.casper_id for deployment in today_deployment]
+            deployment = [str(deployment.casper_id) for deployment in today_deployment]
+            print(f"casper_ids => {casper_ids} , today_deployment => {deployment}")
             for casper in casper_ids:
                 if casper in deployment:
                     already_deployed.append(casper) 

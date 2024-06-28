@@ -1,12 +1,14 @@
 from enum import unique
 from os import stat
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, json, render_template, request, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
+import pandas as pd
+import os
 import pandas as pd
 
 
@@ -20,6 +22,12 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
     migrate.init_app(app, db)
+
+    UPLOAD_FOLDER = 'upload'
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
 
 
     from models import Deployment , Station , Casper
@@ -243,6 +251,60 @@ def create_app():
             app.logger.error(f"Unexpected Error:  {e}")
             return jsonify({"Error": "Internal Server Error"}) , 500
 
+
+    @app.route("/upload_users" , methods=["POST"])
+    def upload_users():
+        if 'file' not in request.files:
+            return jsonify({"Error": "No File Found"}) , 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"Error": "No File Uploaded"}) , 400
+
+        if file and file.filename.endswith(".csv"):
+            filename = file.filename
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'] , filename)
+            print(f'FilePath => {filepath}')
+            file.save(filepath)
+            success, message = save_users(filepath)
+            if success:
+                return jsonify({"message": message}) , 200
+            else:
+                return jsonify({"error": message}) , 400
+        else:
+            return jsonify({"error": "Invalid Filetype"}) , 400
+
+
+    def save_users(filepath: str) -> tuple:
+        headers = ["casper" , "name" , "designation" , "department"] 
+        if not os.path.exists(filepath):
+            return False , "File Does Not Exists"
+        df = pd.read_csv(filepath)
+        file_headers = df.columns.to_list()
+        app.logger.debug(f"Server Headers => {headers} || File Headers => {file_headers}")
+
+        if headers != file_headers:
+            return False , "CSV Headers are different"
+
+        new_users = 0
+
+        for _, row in df.iterrows():
+            if not Casper.query.filter_by(casper_id= row["casper"]).first():
+                casper = Casper(
+                    casper_id = row["casper"],
+                    name = row['name'],
+                    designation = row['department'],
+                    department = row['department']
+                )
+                db.session.add(casper)
+                new_users += 1
+
+        db.session.commit()
+
+        if new_users <= 0:
+            return True  , "No new users Added"
+        else:
+            return True , f"{len(str(new_users))} users added Sucessfully"
 
     return app
 
